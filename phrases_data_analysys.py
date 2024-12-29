@@ -29,6 +29,12 @@ class AnalyzeData():
         self.result_dir = result_directory
         self.data_dir = data_directory
         self.spam_tag = spam_tag
+        self.spam_rel = 1
+        self.html_phrases = [
+            "<img", "<IMG", "</a>", "</A>", "color=", "COLOR=", "bgcolor=", 
+            "BGCOLOR=", "<br>", "<BR>", "</font>", "</FONT>", "</td>", "</TD>", 
+            "</tr>", "</TR>"
+            ]
 
     #This is the function that we can use in our filter
     def count_in_file(self, filename, phrase):
@@ -36,6 +42,104 @@ class AnalyzeData():
             content = file.read()
             count = content.count(phrase)
         return count
+
+    #To figure out how many hams and spams the set has
+    #The proportion needs to be taken into account when reading the data
+    def spam_ham_emails(self, truth_dict):
+        spams = 0
+        for filename in truth_dict:
+            if truth_dict[filename] == self.spam_tag:
+                spams += 1
+
+        print("In the set there is " + str(spams) + " spam emails out of " +
+              str(len(truth_dict)) + " total emails")
+        self.spam_rel = spams/len(truth_dict)
+
+    def average_spam_ham_count(self, truth_dict, phrase):
+        spam_avrg = 0
+        spam_i = 0
+        ham_avrg = 0
+        ham_i = 0
+
+        #This is an inneficent method for a bulk of phrases
+        for filename in truth_dict:
+            count = self.count_in_file(filename, phrase)
+            if count == 0:
+                continue
+            if truth_dict[filename] == self.spam_tag:
+                spam_i += 1
+                #We will divide once we have gathered all
+                spam_avrg += count
+            else:
+                ham_i += 1
+                ham_avrg += count
+        
+        if spam_i != 0:
+            spam_avrg = round(spam_avrg/spam_i, 2)
+        if ham_i != 0:
+            ham_avrg = round(ham_avrg/ham_i)
+
+        print("For phrase " + phrase)
+        print("Among spam it was found in " + str(spam_i) + 
+                " files and the average among those is " + str(spam_avrg))
+        print("Among ham it was found in " + str(ham_i) + 
+                " files and the average among those is " + str(ham_avrg))
+
+    def bulk_avrg_spam_ham_count(self, truth_dict, words):
+        spam_avrg = [0] * len(words)
+        spam_i = [0] * len(words)
+        ham_avrg = [0] * len(words)
+        ham_i = [0] * len(words)
+
+        #By touched I mean where we found at least one words
+        already_touched = False
+        spam_touched = 0
+        ham_touched = 0
+
+        for filename in truth_dict:
+            already_touched = False
+            for n in range(len(words)):
+                count = self.count_in_file(filename, words[n])
+                if count == 0:
+                    continue
+                if truth_dict[filename] == self.spam_tag:
+                    spam_i[n] += 1
+                    #We will divide once we have gathered all
+                    spam_avrg[n] += count
+                    if not already_touched:
+                        spam_touched += 1
+                        already_touched = True
+                else:
+                    ham_i[n] += 1
+                    ham_avrg[n] += count
+                    if not already_touched:
+                        ham_touched += 1
+                        already_touched = True
+
+        for n in range(len(words)):
+            if spam_i[n] != 0:
+                spam_avrg[n] = round(spam_avrg[n]/spam_i[n], 2)
+            if ham_i[n] != 0:
+                ham_avrg[n] = round(ham_avrg[n]/ham_i[n])
+
+            print("For phrase " + words[n])
+            print("Among spam it was found in " + str(spam_i[n]) + 
+                    " files and the average among those is " + str(spam_avrg[n]))
+            print("Among ham it was found in " + str(ham_i[n]) + 
+                    " files and the average among those is " + str(ham_avrg[n]))
+
+        print("Total spam touched is " + str(spam_touched)
+                  + " and ham " + str(ham_touched))
+        """
+        When testing this on the first set I found that when using html_phrases
+        we touch only 269 spam (out of 461 spam emails in the set) 
+        and only 11 hams (which is nice)
+
+        From this I conclude testing spam through html_phrases is realiable
+        Theoretically catching up to a half of spams and only up to 5% hams
+        """
+
+
 
     """
     Interval decides how many points there will be on the x axis (100/interval)
@@ -67,8 +171,8 @@ class AnalyzeData():
                     break
 
         for i in range(len(ratio)):
-            print("on " + str(i) + " all is " + str(all_in_interval[i])
-                  + " and spam is " + str(spam_in_interval[i]))
+            #print("on " + str(i) + " all is " + str(all_in_interval[i])
+            #      + " and spam is " + str(spam_in_interval[i]))
             if all_in_interval[i] == 0:
                 #To distinquish empty and all hamm
                 ratio[i] = -20
@@ -78,7 +182,7 @@ class AnalyzeData():
                 continue
             ratio[i] = (spam_in_interval[i] / all_in_interval[i]) * 100
 
-        plt.scatter(interval_set, ratio)
+        plt.plot(interval_set, ratio)
 
         plt.xlabel(phrase + "- intervals")
         plt.ylabel("spam/all")
@@ -105,13 +209,15 @@ if __name__ == "__main__":
     tr_dict = utils.read_classification_from_file(truth_filename)
 
     analyze = AnalyzeData(emails_dir, result_dir, "SPAM")
+
+    analyze.spam_ham_emails(tr_dict)
     
     #Phrases list to choose     - html_phrases, link_ends, file_types
     #for phrase in html_phrases:
-    #   analyze.create_graph(5, tr_dict, phrase)
-
+        #analyze.create_graph(1, tr_dict, phrase)
+    
+    analyze.bulk_avrg_spam_ham_count(tr_dict, html_phrases)
 
     #If you want to try just one specific phrase
-    phrase = "<img"
-    
-    analyze.create_graph(5, tr_dict, phrase)
+    #phrase = ""
+    #analyze.create_graph(5, tr_dict, phrase)
