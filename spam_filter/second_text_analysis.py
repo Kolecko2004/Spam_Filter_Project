@@ -1,4 +1,5 @@
 import os
+import os
 
 #-10 spam
 #10 ham
@@ -100,8 +101,10 @@ class Analyser():
         self.upp_ham_avrg = ham_BIG
         self.upp_spam_avrg = spam_BIG
 
-        self.html_bias = 1 - (ham_touched/spam_touched)
-        self.cap_html_bias = 1 - (cap_ham_touched/cap_spam_touched)
+        if(spam_touched != 0):  
+            self.html_bias = 1 - (ham_touched/spam_touched)
+        if(cap_spam_touched != 0):  
+            self.cap_html_bias = 1 - (cap_ham_touched/cap_spam_touched)
 
         #For unexpected behaviour
         if(ham_touched > spam_touched):
