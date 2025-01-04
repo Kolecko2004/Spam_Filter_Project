@@ -1,6 +1,6 @@
 import os
 import corpus
-import spam_filter.email_text_analysis as e_t_a
+import email_text_analysis as e_t_a
 from utils import read_classification_from_file
 from quality import compute_quality_for_corpus
 
@@ -15,16 +15,33 @@ class MyFilter():
 
         predictions = {}
         
+        average_points = 0
+        spam_num = 0
+        ok_average_points = 0
+        ok_num = 0
+        
         for filename in self.load_emails():
             path_to_file = os.path.join(self.path_to_folder, filename)
 
             classification = self.classifications.get(filename, "UNKNOWN")
             print(f"Email: {filename} is classified as: {classification}")
 
-            analyzer = e_t_a.AnalyseText()
-            prediction = analyzer.result(path_to_file)
-            points = analyzer.overall_points()
+            analyzer = e_t_a.AnalyseText(path_to_file)
+            # prediction = analyzer.result(path_to_file)
+            points = analyzer.count_safe_words()
+            if points < 700 :
+                prediction = "SPAM"
+            else:
+                prediction = "OK"
             predictions[filename] = prediction
+            
+            if classification == "SPAM":
+                spam_num += 1
+                average_points += points
+                
+            if classification == "OK":
+                ok_num += 1
+                ok_average_points += points
 
         # Write predictions to file
         prediction_file = os.path.join(self.path_to_folder, "!prediction.txt")
@@ -33,7 +50,8 @@ class MyFilter():
         # Calculate quality score
         self.quality = self.get_quality()
         print(f"\nFinal quality score: {self.quality:.4f}")
-        # print(f"Average spam score: {average_points / spam_num}")
+        print(f"Average spam score: {average_points / spam_num}")
+        print(f"aAverage ok score: {ok_average_points / ok_num}")
 
         return self.quality
 
