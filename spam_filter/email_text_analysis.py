@@ -22,7 +22,6 @@ class AnalyseText():
         # Extract the text content
         text = soup.get_text(separator="\n")
         
-        # Remove leading/trailing whitespace and return
         return text.strip().lower()
     
     def count_special_characters(self):

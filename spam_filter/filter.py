@@ -7,53 +7,50 @@ from quality import compute_quality_for_corpus
 
 class MyFilter():
     def train(self, path_to_train_folder: str) -> None:
+        self.path_to_train_folder = path_to_train_folder
         self.truth_file = os.path.join(path_to_train_folder, "!truth.txt")
         self.classifications = read_classification_from_file(self.truth_file)
+
+        predictions = {}
+
+        for filename in self.load_emails(self.path_to_train_folder):
+            path_to_file = os.path.join(self.path_to_train_folder, filename)
+
+            classification = self.classifications.get(filename, "UNKNOWN")
+            print(f"Email: {filename} is classified as: {classification}")
+
+            predictions[filename] = self.get_prediction(path_to_file)
+            # if classification == "SPAM":
+            #     spam_num += 1
+            #     average_points += points
+
+            # if classification == "OK":
+            #     ok_num += 1
+            #     ok_average_points += points
+
+        prediction_file = os.path.join(
+            self.path_to_train_folder, "!prediction.txt")
+        self.write_predictions_to_file(predictions, prediction_file)
+
+        self.quality = self.get_quality()
+        print(f"\nFinal quality score: {self.quality:.4f}")
+        # print(f"Average spam score: {average_points / spam_num}")
+        # print(f"aAverage ok score: {ok_average_points / ok_num}")
 
     def test(self, path_to_folder: str) -> None:
         self.path_to_folder = path_to_folder
 
         predictions = {}
-        
-        average_points = 0
-        spam_num = 0
-        ok_average_points = 0
-        ok_num = 0
-        
-        for filename in self.load_emails():
+
+        for filename in self.load_emails(self.path_to_folder):
             path_to_file = os.path.join(self.path_to_folder, filename)
 
-            classification = self.classifications.get(filename, "UNKNOWN")
-            print(f"Email: {filename} is classified as: {classification}")
-
-            analyzer = e_t_a.AnalyseText(path_to_file)
-            # prediction = analyzer.result(path_to_file)
-            points = analyzer.count_safe_words()
-            if points < 700 :
-                prediction = "SPAM"
-            else:
-                prediction = "OK"
-            predictions[filename] = prediction
-            
-            if classification == "SPAM":
-                spam_num += 1
-                average_points += points
-                
-            if classification == "OK":
-                ok_num += 1
-                ok_average_points += points
+            predictions[filename] = self.get_prediction(path_to_file)
+            print(f"Prediction for {filename}: {predictions[filename]}")
 
         # Write predictions to file
         prediction_file = os.path.join(self.path_to_folder, "!prediction.txt")
         self.write_predictions_to_file(predictions, prediction_file)
-
-        # Calculate quality score
-        self.quality = self.get_quality()
-        print(f"\nFinal quality score: {self.quality:.4f}")
-        print(f"Average spam score: {average_points / spam_num}")
-        print(f"aAverage ok score: {ok_average_points / ok_num}")
-
-        return self.quality
 
     def write_predictions_to_file(self, predictions: dict, filename: str) -> None:
         # Write predictions to a file
@@ -61,18 +58,27 @@ class MyFilter():
         for email_file, classification in predictions.items():
             file_prediction.write(f"{email_file} {classification}\n")
 
-    def load_emails(self):
-        test_file = corpus.Corpus(self.path_to_folder)
+    def load_emails(self, emails_folder):
+        file = corpus.Corpus(emails_folder)
         count = 0
-        for filename, body in test_file.emails():
-            print(f'FILENAME: {filename}')
-            print('--------------------------------------')
+        for filename in file.emails():
             yield filename
             count += 1
         print(f"Finished: {count} files processed")
 
     def get_quality(self):
-        return compute_quality_for_corpus(self.path_to_folder)
+        return compute_quality_for_corpus(self.path_to_train_folder)
+
+    def get_prediction(self, path_to_file):
+        analyzer = e_t_a.AnalyseText(path_to_file)
+        special_characters_points = analyzer.count_special_characters()
+        money_mention_points = analyzer.count_money_mention()
+
+        overall_points = special_characters_points + money_mention_points
+
+        result = 'OK'
+
+        return result
 
 
 if __name__ == "__main__":
