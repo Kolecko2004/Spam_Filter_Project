@@ -1,6 +1,9 @@
 import matplotlib.pyplot as plt
 import utils
 
+#-10 spam
+#10 ham
+
 """
 First I am building a program to analyze the given data
 """
@@ -274,7 +277,7 @@ if __name__ == "__main__":
     emails_dir = "E:/School/1/"
     
     #Doesnt need to be used if we are not saving the results
-    result_dir = "E:\\School\\1\\"
+    result_dir = "E:/School/1/"
 
     truth_filename = emails_dir + "!truth.txt"
 
