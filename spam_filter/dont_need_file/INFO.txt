@@ -1,4 +1,0 @@
-# truth OK filter SPAM == fp
-# # truth SPAM filter OK == fn
-# truth SPAM filter SPAM == tp
-# # truth OK filter SPAM == tn
