@@ -13,8 +13,7 @@ class Corpus:
         for filename in self.files_list:
             filepath = os.path.join(self.path_to_folder, filename)
             file = open(filepath, mode='r', encoding='UTF-8')
-            body = file.read()
-            yield filename, body
+            yield filename
             file.close()
         
     def filter_files(self):
@@ -29,7 +28,7 @@ class Corpus:
 if __name__ == "__main__":
     i = Corpus('C:/Users/42073/Documents/Škola/Semestr-1/Reseni-Problemu-a-Hry/Home-Works/Spam_Filter_Project/spam_filter/test_files/1')
     count = 0
-    for filename, body in i.emails():
+    for filename in i.emails():
         print(f'FILENAME: {filename}')
         # print(f'MESSAGE: {body.encode()}')
         print('--------------------------------------')
