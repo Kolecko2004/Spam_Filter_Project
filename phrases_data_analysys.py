@@ -35,6 +35,78 @@ class AnalyzeData():
             "BGCOLOR=", "<br>", "<BR>", "</font>", "</FONT>", "</td>", "</TD>", 
             "</tr>", "</TR>"
             ]
+        
+    def separete_train_test(self, truth_dict):
+        part = 8        #How big do we want the test part to be ( all/part)
+        total = 0
+        spam = 0
+        ham = 0
+
+        for filename in truth_dict:
+            total += 1
+            if truth_dict[filename] == self.spam_tag:
+                spam += 1
+            else:
+                ham += 1
+
+
+
+    """
+    Finding the relative proportion of uppercase and lowercase
+    I think this on itself can be used as a way to detect spam, using the average of uppercase letters
+    If there are more uppercase letters than the average of a spam email, the email is likely spam
+    """
+    def uplow_prop(self, truth_dict):
+        #From previous run I found the average for first set
+        spam_average = 630      #For uppercase letters
+        ham_beyond_spam_avrg = 0 
+        spam_beyond_spam_avrg = 0
+
+        spam_BIG = 0
+        spam_small = 0
+        spam_i = 0
+        ham_BIG = 0
+        ham_small = 0
+        ham_i = 0
+        all = 0
+
+        #This is an inneficent method for a bulk of phrases
+        for filename in truth_dict:
+            with open(self.data_dir + filename, "r", encoding='utf-8') as file:
+                content = file.read()
+                all += len(content)
+                uppercase_count = sum(1 for char in content if char.isupper())
+                lowercase_count = sum(1 for char in content if char.islower())
+            if truth_dict[filename] == self.spam_tag:
+                spam_i += 1
+                #We will divide once we have gathered all
+                spam_BIG += uppercase_count
+                spam_small += lowercase_count
+                if(uppercase_count > spam_average):
+                    spam_beyond_spam_avrg += 1
+            else:
+                ham_i += 1
+                ham_BIG += uppercase_count
+                ham_small += lowercase_count
+                if(uppercase_count > spam_average):
+                    ham_beyond_spam_avrg += 1
+        
+        if spam_i != 0:
+            spam_BIG = round(spam_BIG/spam_i, 2)
+            spam_small = round(spam_small/spam_i, 2)
+        if ham_i != 0:
+            ham_BIG = round(ham_BIG/ham_i, 2)
+            ham_small = round(ham_small/ham_i, 2)
+
+        print("Among spam it was found in " + str(spam_i) + 
+                " files and the average big is " + str(spam_BIG) + " and small is " + str(spam_small))
+        print("Among ham it was found in " + str(ham_i) + 
+                " files and the average big is " + str(ham_BIG) + " and small is " + str(ham_small))
+        
+        content_avrg = all/(spam_i + ham_i)
+
+        print( "all text average is " + str(content_avrg))
+        print("files beyond spam uppercase letter average there are " + str(spam_beyond_spam_avrg) + " spams and " + str(ham_beyond_spam_avrg) + " hams")
 
     #This is the function that we can use in our filter
     def count_in_file(self, filename, phrase):
@@ -199,10 +271,10 @@ class AnalyzeData():
 
 if __name__ == "__main__":
     #This is the absolute adress of where the emails are stored
-    emails_dir = "/home/leon/School/rph/spam_filtr/1/"
+    emails_dir = "E:/School/1/"
     
     #Doesnt need to be used if we are not saving the results
-    result_dir = "/home/leon/School/rph/spam_filtr/data_analysys/"
+    result_dir = "E:\\School\\1\\"
 
     truth_filename = emails_dir + "!truth.txt"
 
@@ -210,13 +282,15 @@ if __name__ == "__main__":
 
     analyze = AnalyzeData(emails_dir, result_dir, "SPAM")
 
-    analyze.spam_ham_emails(tr_dict)
+    #analyze.spam_ham_emails(tr_dict)
     
     #Phrases list to choose     - html_phrases, link_ends, file_types
     #for phrase in html_phrases:
         #analyze.create_graph(1, tr_dict, phrase)
     
-    analyze.bulk_avrg_spam_ham_count(tr_dict, html_phrases)
+    #analyze.bulk_avrg_spam_ham_count(tr_dict, html_phrases)
+
+    analyze.uplow_prop(tr_dict)
 
     #If you want to try just one specific phrase
     #phrase = ""
