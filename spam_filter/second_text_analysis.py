@@ -1,4 +1,4 @@
-
+import os
 
 #-10 spam
 #10 ham
@@ -56,7 +56,8 @@ class Analyser():
         for filename in truth_dict:
             already_touched = False
             cap_already_touched = False
-            with open(train_dir + filename, "r", encoding='utf-8') as file:
+            final_filename = os.path.join(train_dir, filename)
+            with open(final_filename, "r", encoding='utf-8') as file:
                 content = file.read()
                 uppercase_count = sum(1 for char in content if char.isupper())
                 lowercase_count = sum(1 for char in content if char.islower())

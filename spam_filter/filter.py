@@ -100,6 +100,6 @@ if __name__ == "__main__":
     filter = MyFilter()
     test_dir = 'C:/Users/42073/Documents/Škola/Semestr-1/Reseni-Problemu-a-Hry/Home-Works/Spam_Filter_Project/spam_filter/test_files/1'
     sec_test_dir = "E:/School/1/"
-    quality = filter.train(sec_test_dir)
-    quality = filter.test(sec_test_dir)
+    quality = filter.train(test_dir)
+    quality = filter.test(test_dir)
     print(f"Quality score: {quality}")
