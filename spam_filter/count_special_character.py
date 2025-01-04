@@ -1,14 +1,42 @@
-class analyse_text():
-    def __init__(self, filename):
+import re
+from bs4 import BeautifulSoup
+
+# RIGHT NOW I DONT EVEN KNOW IF WE SHOULD USE THIS
+
+class AnalyseText():
+    def result(self, filename):
         self.filename = filename
         self.file = open(self.filename, mode='r', encoding='UTF-8')
-        self.body = self.file.read()
+        self.email_body = self.file.read()
+        self.clean_text = self.get_clean_text()
         
-        print(self.count_special_characters())
-        print(self.count_money_mention())
-        print(self.count_save_words())
-
+        points = self.overall_points()
+        print(f'Points: {points}')
+        
         self.file.close()
+        
+        if points >= -10:
+            return 'OK'
+        
+        return 'SPAM'
+    
+    def overall_points(self):
+        return self.count_safe_words() - self.count_money_mention() - self.count_special_characters()
+    
+    def get_clean_text(self):
+        body_idx = -1
+        body_idx = self.email_body.find("<BODY>")
+        if body_idx != -1:
+            self.email_body = self.email_body[body_idx:]
+
+        soup = BeautifulSoup(self.email_body, "html.parser")
+        
+        # Extract the text content
+        text = soup.get_text(separator="\n")
+        
+        # Remove leading/trailing whitespace and return
+        return text.strip().lower()
+    
     
     def count_special_characters(self):
         # this function counts the number of special characters in the email body
@@ -16,7 +44,7 @@ class analyse_text():
         count = 0
         
         for special in special_characters:
-            count += self.body.count(special)
+            count += self.clean_text.count(special)
         
         return count
     
@@ -51,17 +79,16 @@ class analyse_text():
             "100%", "Secure"
         ]
         
-        body_lower = self.body.lower()
         for word in money_related_words:
-            count += body_lower.count(word.lower())
+            count += self.clean_text.count(word.lower())
         
         return count
     
-    def count_save_words(self):
+    def count_safe_words(self):
         # this function counts the number of save words in the email body
         # idea about using nltk so it finds the synonyms of the words and counts them as well
         count = 0
-        save_words = [
+        safe_words = [
             # Greetings and Salutations
             "Hello", "Hi", "Hey", "Greetings", "Dear", "Good morning", "Good afternoon", 
             "Good evening", "Welcome", "How are you", "Hope you're doing well",
@@ -89,11 +116,11 @@ class analyse_text():
             "Looking forward", "Thanks in advance"
         ]
         
-        body_lower = self.body.lower()
-        for word in save_words:
-            count += body_lower.count(word.lower())
+        for word in safe_words:
+            count += self.clean_text.count(word.lower())
         
         return count
     
 if __name__ == "__main__":
-    i = analyse_text('/Users/42073/Documents/Škola/Semestr-1/Reseni-Problemu-a-Hry/Home-Works/spam_filter/test_files/email_MFuFZAQg.txt')
+    i = AnalyseText()
+    i.result('C:/Users/42073/Documents/Škola/Semestr-1/Reseni-Problemu-a-Hry/Home-Works/Spam_Filter_Project/spam_filter/test_files/hello.txt')

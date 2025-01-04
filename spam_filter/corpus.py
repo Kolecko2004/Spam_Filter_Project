@@ -6,11 +6,9 @@ class Corpus:
     
     def get_files(self):
         self.files_list = os.listdir(self.path_to_folder)
-        print(self.files_list)
         self.filter_files()
-        print(self.files_list)
         
-    def emails(self):
+    def emails(self): 
         self.get_files()
         for filename in self.files_list:
             filepath = os.path.join(self.path_to_folder, filename)
@@ -29,11 +27,11 @@ class Corpus:
             self.files_list.remove(bad_file)
         
 if __name__ == "__main__":
-    i = Corpus('/Users/42073/Documents/Škola/Semestr-1/Reseni-Problemu-a-Hry/Home-Works/spam_filter/test_files')
+    i = Corpus('C:/Users/42073/Documents/Škola/Semestr-1/Reseni-Problemu-a-Hry/Home-Works/Spam_Filter_Project/spam_filter/test_files/1')
     count = 0
     for filename, body in i.emails():
         print(f'FILENAME: {filename}')
-        print(f'MESSAGE: {body.encode()}')
+        # print(f'MESSAGE: {body.encode()}')
         print('--------------------------------------')
         count += 1
     print(f"Finished: {count} files processed")
