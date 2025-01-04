@@ -1,15 +1,24 @@
 import os
 import corpus
 import email_text_analysis as e_t_a
+import second_text_analysis as s_t_a
 from utils import read_classification_from_file
 from quality import compute_quality_for_corpus
 
 
 class MyFilter():
+    def __init__(self):
+        self.second_analyser = s_t_a.Analyser()
+        #Could be changed when training
+        self.tiping_point = 0
+
     def train(self, path_to_train_folder: str) -> None:
         self.path_to_train_folder = path_to_train_folder
         self.truth_file = os.path.join(path_to_train_folder, "!truth.txt")
         self.classifications = read_classification_from_file(self.truth_file)
+
+        #Training second analyser
+        self.second_analyser.setup_properties(self.path_to_train_folder, self.classifications)
 
         predictions = {}
 
@@ -74,8 +83,14 @@ class MyFilter():
         special_characters_points = analyzer.count_special_characters()
         money_mention_points = analyzer.count_money_mention()
 
-        overall_points = special_characters_points + money_mention_points
+        sta_results = self.second_analyser.results(path_to_file)
+        capital_points = sta_results[0]
+        html_points = sta_results[1]
 
+        overall_points = special_characters_points + money_mention_points + html_points + capital_points
+
+        if overall_points < self.tiping_point:
+            return 'SPAM'
         result = 'OK'
 
         return result
@@ -84,6 +99,7 @@ class MyFilter():
 if __name__ == "__main__":
     filter = MyFilter()
     test_dir = 'C:/Users/42073/Documents/Škola/Semestr-1/Reseni-Problemu-a-Hry/Home-Works/Spam_Filter_Project/spam_filter/test_files/1'
-    quality = filter.train(test_dir)
-    quality = filter.test(test_dir)
+    sec_test_dir = "E:/School/1/"
+    quality = filter.train(sec_test_dir)
+    quality = filter.test(sec_test_dir)
     print(f"Quality score: {quality}")
