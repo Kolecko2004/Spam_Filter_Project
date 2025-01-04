@@ -1,6 +1,6 @@
 import os
 import corpus
-import count_special_character as csc
+import spam_filter.email_text_analysis as e_t_a
 from utils import read_classification_from_file
 from quality import compute_quality_for_corpus
 
@@ -21,7 +21,7 @@ class MyFilter():
             classification = self.classifications.get(filename, "UNKNOWN")
             print(f"Email: {filename} is classified as: {classification}")
 
-            analyzer = csc.AnalyseText()
+            analyzer = e_t_a.AnalyseText()
             prediction = analyzer.result(path_to_file)
             points = analyzer.overall_points()
             predictions[filename] = prediction
@@ -31,11 +31,11 @@ class MyFilter():
         self.write_predictions_to_file(predictions, prediction_file)
 
         # Calculate quality score
-        quality = compute_quality_for_corpus(self.path_to_folder)
-        print(f"\nFinal quality score: {quality:.4f}")
+        self.quality = self.get_quality()
+        print(f"\nFinal quality score: {self.quality:.4f}")
         # print(f"Average spam score: {average_points / spam_num}")
 
-        return quality
+        return self.quality
 
     def write_predictions_to_file(self, predictions: dict, filename: str) -> None:
         # Write predictions to a file
