@@ -21,12 +21,12 @@ class Analyser():
     
     def results(self, filename):
         """
+        Returns a list of results, first is cap and second html
         Expects absolute adress
         """
-        self.filename = filename
-        self.file = open(self.filename, mode='r', encoding='UTF-8')
-        content = self.file.read()
-        self.file.close()
+        file = open(filename, mode='r', encoding='UTF-8')
+        content = file.read()
+        file.close()
         points = []
         points.append(self.uppercase_result(content))   
         points.append(self.html_result(content))
@@ -36,7 +36,7 @@ class Analyser():
     #This part should be called in train
     def setup_properties(self, train_dir, truth_dict):
         """
-        Truth dict should have absolute adresses
+        Sets up analyser variables by looking at training data
         """
 
         spam_BIG = 0
